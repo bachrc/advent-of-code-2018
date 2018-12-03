@@ -6,6 +6,8 @@ class Rectangle:
     def __init__(self, number, offset_x, offset_y, width, height):
         self.number = number
 
+        self.conflicted = False
+
         self.xBeginning = offset_x
         self.xEnd = offset_x + width
 
@@ -14,6 +16,9 @@ class Rectangle:
 
     def contains(self, x, y):
         return self.xBeginning <= x < self.xEnd and self.yBeginning <= y < self.yEnd
+
+    def set_conflict(self):
+        self.conflicted = True
 
 
 pattern = r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)"
@@ -39,7 +44,14 @@ if __name__ == '__main__':
 
     for y in range(biggestY):
         for x in range(biggestX):
-            conflicted_area = sum([1 if rectangle.contains(x, y) else 0 for rectangle in rectangles]) >= 2
-            conflicted_areas += 1 if conflicted_area else 0
+            rectangles_here = [rectangle for rectangle in rectangles if rectangle.contains(x, y)]
+            if len(rectangles_here) >= 2:
+                for rectangle in rectangles_here:
+                    rectangle.set_conflict()
 
-    print("There are {} conflicted areas".format(conflicted_areas))
+                conflicted_areas += 1
+
+    rectangles_without_conflict = [str(rectangle.number) for rectangle in rectangles if not rectangle.conflicted]
+
+    print("There are {} conflicted areas, and only {} rectangles without conflicts : Numbers {}"
+          .format(conflicted_areas, len(rectangles_without_conflict), ", ".join(rectangles_without_conflict)))
