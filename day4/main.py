@@ -1,4 +1,3 @@
-import operator
 from datetime import datetime
 import re
 from pathlib import Path
@@ -24,12 +23,23 @@ class Guard:
     def get_total_time_slept(self):
         return sum([sleep_period.get_minutes_slept() for sleep_period in self.sleep_periods])
 
-    def compute_most_present_minute(self):
+    def compute_slept_minutes(self):
         minutes_slept = {}
 
         for sleep_period in self.sleep_periods:
             for minute in range(sleep_period.start.minute, sleep_period.end.minute):
                 minutes_slept[minute] = minutes_slept.setdefault(minute, 0) + 1
+
+        return minutes_slept
+
+    def compute_most_slept_minute_with_value(self):
+        minutes_slept = self.compute_slept_minutes()
+
+        most_present_minute = max(minutes_slept.keys(), key=(lambda key: minutes_slept[key]))
+        return most_present_minute, minutes_slept[most_present_minute]
+
+    def compute_most_present_minute(self):
+        minutes_slept = self.compute_slept_minutes()
 
         return max(minutes_slept.keys(), key=(lambda key: minutes_slept[key]))
 
@@ -72,5 +82,19 @@ if __name__ == '__main__':
     sorted_guards_by_laziness = sorted(guards.values(), key=Guard.get_total_time_slept, reverse=True)
     laziest_fuck: Guard = sorted_guards_by_laziness[0]
 
-    print("The laziest fuck is Guard number {} with {} minutes slept. The minute he slept the most is {}"
-          .format(laziest_fuck.number, laziest_fuck.get_total_time_slept(), laziest_fuck.compute_most_present_minute()))
+    biggest_time = -1
+    selected_guard = None
+    selected_minute = -1
+    for guard in guards.values():
+        biggest_minute, times = guard.compute_most_slept_minute_with_value()
+        if times > biggest_time:
+            biggest_time = times
+            selected_guard = guard
+            selected_minute = biggest_minute
+
+    guard_id = selected_guard.number
+
+    print("The laziest fuck is Guard number {} with {} minutes slept. \nThe minute he slept the most is {}\n"
+          "The wanted number for strategy 2 is {} i'm tired please work"
+          .format(laziest_fuck.number, laziest_fuck.get_total_time_slept(), laziest_fuck.compute_most_present_minute(),
+                  guard_id * selected_minute))
