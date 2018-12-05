@@ -1,9 +1,16 @@
+import sys
 from pathlib import Path
+from string import ascii_lowercase
 
 
 class Polymer:
     def __init__(self, polymer: str):
         self.polymer = list(polymer)
+
+    def removing_letter(self, letter: str):
+        new_list = [unit for unit in self.polymer if unit.lower() != letter.lower()]
+
+        return Polymer("".join(new_list))
 
     def iter_on_polymers(self):
         reactions = 0
@@ -28,6 +35,11 @@ class Polymer:
     def get_polymer_size(self):
         return len(self.polymer)
 
+    def compute_reduced_polymer(self):
+        while True:
+            if self.iter_on_polymers() == 0:
+                return self
+
     @classmethod
     def switch_case_letter(cls, letter: str):
         return letter.lower() if letter.isupper() else letter.upper()
@@ -42,9 +54,16 @@ if __name__ == '__main__':
     line = p.read_text()
 
     polymer = Polymer(line)
+    tiniest_polymer_size = sys.maxsize
 
-    while True:
-        if polymer.iter_on_polymers() == 0:
-            break
+    for c in ascii_lowercase:
+        amputed_polymer = polymer.removing_letter(c)
+        polymer_size = amputed_polymer.compute_reduced_polymer().get_polymer_size()
 
-    print("The Polymer is now composed of {}".format(polymer.get_polymer_size()))
+        if polymer_size < tiniest_polymer_size:
+            tiniest_polymer_size = polymer_size
+
+    polymer.compute_reduced_polymer()
+
+    print("The Polymer is now composed of {}, and the tiniest possible is {}".format(polymer.get_polymer_size(),
+                                                                                     tiniest_polymer_size))
